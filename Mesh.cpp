@@ -18,22 +18,22 @@ void Mesh::halfEdgeCollapse(Edge* edge){
 	std::vector<int>faceKeys_;
 	
 	Edge* e_ = edge->getV1edge();
-	int f_ = leftFace(edge->getV1(), edge->getV2());
+	int f_ = leftFace(edge->v1, edge->v2);
 
 	while ((*e_) == (*edge)){
-		SVec3f key_ = e_->getV1() / 2.0 + e_->getV2() / 2.0;
+		SVec3f key_ = e_->v1 / 2.0 + e_->v2 / 2.0;
 		edgeKeys_.push_back(key_);
 		
 		faceKeys_.push_back(f_);
 
 		e_ = e_->getV1edge();
-		f_ = leftFace(edge->getV1(), edge->getV2());
+		f_ = leftFace(edge->v1, edge->v2);
 	}
 	
-	int i = 0;
+	unsigned int i = 0;
 	for ( ; i < edgeKeys_.size(); i++){
 		SVec3f currKey = edgeKeys_.at(i);
-		edges_.erase(currKey);
+		edges.erase(currKey);
 	}
 	
 }
@@ -53,8 +53,8 @@ void Mesh::loadEdges(){
 	edgesCount_ = 0;
 	unsigned int i = 0;
 
-	for ( ; i < faces_.size(); i++){
-		Face f_ = faces_.at(i);
+	for ( ; i < faces.size(); i++){
+		Face f_ = faces.at(i);
 		Edge* edge_ = new Edge(f_.V1, f_.V2);
 		Edge* nextV1edge_ = new Edge();
 		Edge* nextV2edge_ = new Edge();
@@ -67,7 +67,7 @@ void Mesh::loadEdges(){
 		edge_->setV2edge(nextV2edge_);
 
 		SVec3f key = f_.V1 / 2.0 + f_.V2 / 2.0;
-		edges_[key] = *edge_;
+		edges[key] = *edge_;
 
 		edge_ = new Edge(f_.V2, f_.V3);
 		nextV1edge_ = new Edge();
@@ -81,7 +81,7 @@ void Mesh::loadEdges(){
 		edge_->setV2edge(nextV2edge_);
 
 		key = f_.V2 / 2.0 + f_.V3 / 2.0;
-		edges_[key] = *edge_;
+		edges[key] = *edge_;
 
 		edge_ = new Edge(f_.V3, f_.V1);
 		nextV1edge_ = new Edge();
@@ -95,32 +95,32 @@ void Mesh::loadEdges(){
 		edge_->setV2edge(nextV2edge_);
 
 		key = f_.V3 / 2.0 + f_.V1 / 2.0;
-		edges_[key] = *edge_;
+		edges[key] = *edge_;
 	}
 }
 
 void Mesh::initializeEdge(Edge* edge){
 
-	int fNum_ = leftFace(edge->getV1(), edge->getV2());
+	int fNum_ = leftFace(edge->v1, edge->v2);
 	if (fNum_ == -1)
 		edge->setLeftFace(NULL);
 	else
-		edge->setLeftFace(&faces_.at(fNum_));
+		edge->setLeftFace(&faces.at(fNum_));
 
-	fNum_ = rightFace(edge->getV1(), edge->getV2());
+	fNum_ = rightFace(edge->v1, edge->v2);
 	if (fNum_ == -1)
 		edge->setRightFace(NULL);
 	else
-		edge->setRightFace(&faces_.at(fNum_));
+		edge->setRightFace(&faces.at(fNum_));
 }
 
 int Mesh::leftFace(const SVec3f &V1, const SVec3f &V2){
 	
-	int i = 0;
-	for ( ; i < faces_.size(); i++)
+	unsigned int i = 0;
+	for ( ; i < faces.size(); i++)
 	{
 		Face* currFace = new Face();
-		*currFace = faces_.at(i);
+		*currFace = faces.at(i);
 		if (currFace->V1 == V1 && currFace->V2 == V2)
 			return i;
 		if (currFace->V1 == V2 && currFace->V3 == V1)
@@ -133,11 +133,11 @@ int Mesh::leftFace(const SVec3f &V1, const SVec3f &V2){
 
 int Mesh::rightFace(const SVec3f &V1, const SVec3f &V2){
 
-	int i = 0;
-	for ( ; i < faces_.size(); i++)
+	unsigned int i = 0;
+	for ( ; i < faces.size(); i++)
 	{
 		Face* currFace = new Face();
-		*currFace = faces_.at(i);
+		*currFace = faces.at(i);
 		if (currFace->V1 == V1 && currFace->V3 == V2)
 			return i;
 		if (currFace->V2 == V2 && currFace->V3 == V1)
@@ -153,25 +153,25 @@ void Mesh::nextV1edge(Edge *currEdge, Edge* edge){
 	const Face* lFace = currEdge->getLeftFace();
 	if (lFace != NULL){
 
-		if (lFace->V1 == currEdge->getV1() && lFace->V2 == currEdge->getV2())
-			edge->setV2(lFace->V3);
-		else if (lFace->V1 == currEdge->getV2() && lFace->V3 == currEdge->getV1())
-			edge->setV2(lFace->V2);
-		else if (lFace->V2 == currEdge->getV1() && lFace->V3 == currEdge->getV2())
-			edge->setV2(lFace->V1);
-		edge->setV1(currEdge->getV1());
+		if (lFace->V1 == currEdge->v1 && lFace->V2 == currEdge->v2)
+			edge->v2 = lFace->V3;
+		else if (lFace->V1 == currEdge->v2 && lFace->V3 == currEdge->v1)
+			edge->v2 = lFace->V2;
+		else if (lFace->V2 == currEdge->v1 && lFace->V3 == currEdge->v2)
+			edge->v2 = lFace->V1;
+		edge->v1 = currEdge->v1;
 		
-		int fNum_ = leftFace(edge->getV1(), edge->getV2());
+		int fNum_ = leftFace(edge->v1, edge->v2);
 		if (fNum_ == - 1)
 			edge->setLeftFace(NULL);
 		else
-			edge->setLeftFace(&faces_.at(fNum_));
+			edge->setLeftFace(&faces.at(fNum_));
 		
-		fNum_ = rightFace(edge->getV1(), edge->getV2());
+		fNum_ = rightFace(edge->v1, edge->v2);
 		if (fNum_ == -1)
 			edge->setRightFace(NULL);
 		else
-			edge->setRightFace(&faces_.at(fNum_));
+			edge->setRightFace(&faces.at(fNum_));
 	}
 	else
 		edge = NULL;
@@ -182,23 +182,23 @@ void Mesh::nextV2edge(Edge* currEdge, Edge* edge)
 	const Face* rFace = currEdge->getRightFace();
 	if (rFace != NULL){
 	
-		if (rFace->V1 == currEdge->getV2() && rFace->V2 == currEdge->getV1())
-			edge->setV1(rFace->V3);
-		else if (rFace->V1 == currEdge->getV1() && rFace->V3 == currEdge->getV2())
-			edge->setV1(rFace->V2);
-		else if (rFace->V2 == currEdge->getV2() && rFace->V3 == currEdge->getV1())
-			edge->setV1(rFace->V1);
-		edge->setV2(currEdge->getV2());
+		if (rFace->V1 == currEdge->v2 && rFace->V2 == currEdge->v1)
+			edge->v1 = rFace->V3;
+		else if (rFace->V1 == currEdge->v1 && rFace->V3 == currEdge->v2)
+			edge->v1 = rFace->V2;
+		else if (rFace->V2 == currEdge->v2 && rFace->V3 == currEdge->v1)
+			edge->v1 = rFace->V1;
+		edge->v2 = currEdge->v2;
 		
-		int fNum_ = leftFace(edge->getV1(), edge->getV2());
+		int fNum_ = leftFace(edge->v1, edge->v2);
 		if (fNum_ != -1)
-			edge->setLeftFace(&faces_.at(fNum_));
+			edge->setLeftFace(&faces.at(fNum_));
 		else
 			edge->setLeftFace(NULL);
 
-		fNum_ = rightFace(edge->getV1(), edge->getV2());
+		fNum_ = rightFace(edge->v1, edge->v2);
 		if (fNum_ != -1)
-			edge->setRightFace(&faces_.at(fNum_));
+			edge->setRightFace(&faces.at(fNum_));
 		else
 			edge->setRightFace(NULL);
 	}
@@ -214,13 +214,13 @@ void Mesh::loadVertices(aiMesh* mesh){
 		currVec.x = mesh->mVertices[i].x;
 		currVec.y = mesh->mVertices[i].y;
 		currVec.z = mesh->mVertices[i].z;
-		vertices_.push_back(currVec);
+		vertices.push_back(currVec);
 	}
 }
 
 void Mesh::loadFaces(aiMesh* mesh){
 	
-	for (int i = 0; i < mesh->mNumFaces; i++){
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++){
 		
 		Face currFace;
 		aiFace currAiFace = mesh->mFaces[i];
@@ -236,7 +236,7 @@ void Mesh::loadFaces(aiMesh* mesh){
 		currFace.V3.x = mesh->mVertices[v3num].x;
 		currFace.V3.y = mesh->mVertices[v3num].y;
 		currFace.V3.z = mesh->mVertices[v3num].z;
-		faces_.push_back(currFace);
+		faces.push_back(currFace);
 	}
 }
 
@@ -259,7 +259,6 @@ Edge::Edge(void)
 	isV1edgeSetted_ = false;
 	isV2edgeSetted_ = false;
 
-	index_ = -1;
 	nextV1edge_ = NULL;
 	nextV2edge_ = NULL;
 	leftFace_ = NULL;
@@ -273,76 +272,33 @@ Edge::Edge(SVec3f V1, SVec3f V2)
 	isRightFaceSetted_ = false;
 	isV1edgeSetted_ = false;
 	isV2edgeSetted_ = false;
-
-	index_ = -1;
 	
 	nextV1edge_ = NULL;
 	nextV2edge_ = NULL;
 	leftFace_ = NULL;
 	rightFace_ = NULL;
 
-	v1_ = V1;
-	v2_ = V2;
-}
-
-Edge::Edge(SVec3f V1, SVec3f V2, unsigned int i)
-{
-	isIndexSetted_ = true;
-	isLeftFaceSetted_ = false;
-	isRightFaceSetted_ = false;
-	isV1edgeSetted_ = false;
-	isV2edgeSetted_ = false;
-
-	index_ = i;
-	nextV1edge_ = NULL;
-	nextV2edge_ = NULL;
-	leftFace_ = NULL;
-	rightFace_ = NULL;
-
-	v1_ = V1;
-	v2_ = V2;
-}
-
-Edge::Edge(SVec3f V1, SVec3f V2, Face* lFace, Face* rFace, unsigned int i)
-{
-	v1_ = V1;
-	v2_ = V2;
-
-	leftFace_ = new Face();
-	*leftFace_ = *lFace;
-	rightFace_ = new Face();
-	*leftFace_ = *lFace;
-
-	index_ = i;
-
-	isLeftFaceSetted_ = true;
-	isRightFaceSetted_ = true;
-	isIndexSetted_ = true;
-
-	isV1edgeSetted_ = false;
-	isV2edgeSetted_ = false;
-
-	nextV1edge_ = NULL;
-	nextV2edge_ = NULL;
+	v1 = V1;
+	v2 = V2;
 }
 
 bool Edge::contains(const SVec3f &V1, const SVec3f &V2)
 {
-	if (v1_ == V1 && v2_ == V2)
+	if (v1 == V1 && v2 == V2)
 		return true;
-	else if (v2_ == V1 && v1_ == V2)
+	else if (v2 == V1 && v1 == V2)
 		return true;
 	return false;
 }
 
 bool Edge::contains(const SVec3f &V1, const SVec3f &V2, bool &orientation)
 {
-	if (v1_ == V1 && v2_ == V2)
+	if (v1 == V1 && v2 == V2)
 	{
 		orientation = true;
 		return true;
 	}
-	else if (v2_ == V1 && v1_ == V2)
+	else if (v2 == V1 && v1 == V2)
 	{
 		orientation = false;
 		return true;
@@ -352,12 +308,12 @@ bool Edge::contains(const SVec3f &V1, const SVec3f &V2, bool &orientation)
 
 void Edge::inverse()
 {
-	SVec3f tempV_ = v1_;
-	v1_ = v2_;
-	v2_ = tempV_;
+	SVec3f tempV_ = v1;
+	v1 = v2;
+	v2 = tempV_;
 
 	if (isV1edgeSetted_ && isV2edgeSetted_){
-		Edge* tempE_ = new Edge(nextV1edge_->getV1(), nextV2edge_->getV2());
+		Edge* tempE_ = new Edge(nextV1edge_->v1, nextV2edge_->v2);
 		
 		if (nextV1edge_->isLeftFaceSetted())
 			tempE_->setLeftFace(nextV1edge_->getLeftFace());
@@ -368,8 +324,8 @@ void Edge::inverse()
 		if (nextV1edge_->isV2edgeSetted())
 			tempE_->setV2edge(nextV1edge_->getV2edge());
 
-		nextV1edge_->setV1(nextV2edge_->getV1());
-		nextV1edge_->setV2(nextV2edge_->getV2());
+		nextV1edge_->v1 = nextV2edge_->v1;
+		nextV1edge_->v2 = nextV2edge_->v2;
 
 		if (nextV2edge_->isLeftFaceSetted())
 			nextV1edge_->setLeftFace(nextV2edge_->getLeftFace());
@@ -380,8 +336,8 @@ void Edge::inverse()
 		if (nextV2edge_->isV2edgeSetted())
 			nextV1edge_->setV2edge(nextV2edge_->getV2edge());
 
-		nextV2edge_->setV1(tempE_->getV1());
-		nextV2edge_->setV2(tempE_->getV2());
+		nextV2edge_->v1 = tempE_->v1;
+		nextV2edge_->v2 = tempE_->v2;
 
 		if (tempE_->isLeftFaceSetted())
 			nextV2edge_->setLeftFace(tempE_->getLeftFace());
@@ -406,7 +362,7 @@ void Edge::setV1edge(Edge* edge){
 
 	if (edge != NULL){
 
-		nextV1edge_ = new Edge(edge->getV1(), edge->getV2());
+		nextV1edge_ = new Edge(edge->v1, edge->v2);
 		
 		if (edge->isLeftFaceSetted()){
 			nextV1edge_->setLeftFace(edge->getLeftFace());
@@ -434,7 +390,7 @@ void Edge::setV2edge(Edge* edge){
 		
 	if (edge != NULL){
 		
-		nextV2edge_ = new Edge(edge->getV1(), edge->getV2());
+		nextV2edge_ = new Edge(edge->v1, edge->v2);
 		
 		if (edge->isLeftFaceSetted()){
 			nextV2edge_->setLeftFace(edge->getLeftFace());
@@ -456,12 +412,4 @@ void Edge::setV2edge(Edge* edge){
 		nextV2edge_ = NULL;
 	
 	isV2edgeSetted_ = true;
-}
-
-bool operator == (Edge e1, Edge e2){
-	return e1.contains(e2.getV1(), e2.getV2());
-}
-
-bool operator != (Edge e1, Edge e2){
-	return !(e1 == e2);
 }

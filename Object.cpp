@@ -20,7 +20,7 @@ bool Object::loadObject(const std::string& filePath)
 	if (!scene)
 		return false;
 	meshesCount = scene->mNumMeshes;
-	for (int i = 0; i < scene->mNumMeshes; i++)
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		Mesh currentMesh;
 		if (!currentMesh.loadMesh(scene->mMeshes[i]))
@@ -32,7 +32,7 @@ bool Object::loadObject(const std::string& filePath)
 
 void Object::saveToVRML(const char* fileName)
 {
-	for (int i = 0; i < meshes.size(); i++)
+	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
 		
 	}

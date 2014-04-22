@@ -41,6 +41,8 @@ class Edge
 public:
 	Edge(void);
 	~Edge(void);
+
+	SVec3f v1, v2;
 	
 	Edge(SVec3f V1, SVec3f V2);
 
@@ -75,27 +77,6 @@ public:
 		return nextV2edge_;
 	}
 
-	SVec3f getV1(){
-		return v1_;
-	}
-
-	SVec3f getV2(){
-		return v2_;
-	}
-
-	void setIndex(unsigned int i){
-		index_ = i;
-		isIndexSetted_ = false;
-	}
-
-	void setV1(SVec3f V1){
-		v1_ = V1;
-	}
-
-	void setV2(SVec3f V2){
-		v2_ = V2;
-	}
-
 	void setLeftFace(Face* lFace){
 		if (lFace != NULL){
 			leftFace_ = new Face(*lFace);
@@ -114,10 +95,6 @@ public:
 		isRightFaceSetted_ = true;
 	}
 
-	bool isIndexSetted(){
-		return isIndexSetted_;
-	}
-
 	bool isLeftFaceSetted(){
 		return isLeftFaceSetted_;
 	}
@@ -134,12 +111,21 @@ public:
 		return isV2edgeSetted_;
 	}
 
+	const bool operator ==(const Edge &e2) const{
+		if (this->v1 == e2.v1 && this->v2 == e2.v2)
+			return true;
+		if (this->v1 == e2.v2 && this->v2 == e2.v1)
+			return true;
+		return false;
+	}
+
+	const bool operator !=(const Edge &e) const{
+		return !(*this == e);
+	}
+
 private:
-	SVec3f v1_;
-	SVec3f v2_;
 	Face* leftFace_;
 	Face* rightFace_;
-	unsigned int index_;
 	Edge* nextV1edge_;
 	Edge* nextV2edge_;
 
@@ -156,6 +142,10 @@ class Mesh
 public:
 	Mesh(void);
 	~Mesh(void);
+
+	std::vector<SVec3f> vertices;
+	std::vector<Face> faces;
+	std::map<SVec3f, Edge> edges;
 	
 	bool loadMesh(aiMesh* mesh);
 
@@ -165,10 +155,6 @@ private:
 	unsigned int verticesCount_;
 	unsigned int facesCount_;
 	unsigned int edgesCount_;
-
-	std::vector<Face> faces_;
-	std::vector<SVec3f> vertices_;
-	std::map<SVec3f, Edge> edges_;
 
 	void halfEdgeCollapse(Edge* edge);
 
